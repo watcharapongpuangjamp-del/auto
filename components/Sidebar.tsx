@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, FilePlus, Search, Wrench, Menu, Settings, FileCheck, Package, MapPin, ClipboardList, Kanban, Users, ChevronDown, Lock, Timer, Contact, HelpCircle, Smartphone } from 'lucide-react';
+import { LayoutDashboard, FilePlus, Search, Wrench, Menu, Settings, FileCheck, Package, MapPin, ClipboardList, Kanban, Users, ChevronDown, Lock, Timer, Contact, HelpCircle, Smartphone, Monitor } from 'lucide-react';
 import { Employee, UserRole } from '../types';
 
 interface SidebarProps {
@@ -76,6 +76,13 @@ const Sidebar: React.FC<SidebarProps> = ({
       elementId: 'nav-workload'
     },
     { 
+      id: 'mechanic_dashboard', 
+      label: 'แดชบอร์ดช่าง (Dashboard)', 
+      icon: LayoutDashboard,
+      roles: [UserRole.ADMIN, UserRole.MECHANIC],
+      elementId: 'nav-mechanic-dashboard'
+    },
+    { 
       id: 'mechanic_app', 
       label: 'แอปช่างซ่อม (My Jobs)', 
       icon: Smartphone,
@@ -109,6 +116,13 @@ const Sidebar: React.FC<SidebarProps> = ({
       icon: Settings,
       roles: [UserRole.ADMIN, UserRole.MECHANIC, UserRole.STAFF],
       elementId: 'nav-settings'
+    },
+    { 
+      id: 'support', 
+      label: 'ช่วยเหลือระยะไกล', 
+      icon: Monitor,
+      roles: [UserRole.ADMIN, UserRole.MECHANIC, UserRole.STAFF],
+      elementId: 'nav-support'
     },
   ];
 

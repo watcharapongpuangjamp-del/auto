@@ -156,13 +156,40 @@ const MechanicApp: React.FC<MechanicAppProps> = ({ estimates, currentUser, onSav
           </div>
 
           {/* Job Details */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-            <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
-              <AlertCircle size={18} className="text-slate-400" /> อาการที่แจ้ง
-            </h3>
-            <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-xl">
-              {selectedJob.diagnosis?.symptoms || selectedJob.notes || 'ไม่มีการระบุอาการ'}
-            </p>
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-4">
+            <div>
+              <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                <AlertCircle size={18} className="text-slate-400" /> อาการที่แจ้ง
+              </h3>
+              <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-xl">
+                {selectedJob.diagnosis?.symptoms || selectedJob.notes || 'ไม่มีการระบุอาการ'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3">
+              {selectedJob.estimatedDuration && (
+                <div className="flex items-center gap-2 text-sm text-slate-600">
+                  <Clock size={16} className="text-brand-600" />
+                  <span className="font-bold">ระยะเวลาประเมิน:</span> {selectedJob.estimatedDuration}
+                </div>
+              )}
+              {selectedJob.toolsUsed && selectedJob.toolsUsed.length > 0 && (
+                <div className="flex items-start gap-2 text-sm text-slate-600">
+                  <Wrench size={16} className="text-brand-600 mt-0.5" />
+                  <div>
+                    <span className="font-bold">เครื่องมือที่ใช้:</span> {selectedJob.toolsUsed.join(', ')}
+                  </div>
+                </div>
+              )}
+              {selectedJob.specialEquipment && selectedJob.specialEquipment.length > 0 && (
+                <div className="flex items-start gap-2 text-sm text-slate-600">
+                  <AlertCircle size={16} className="text-orange-500 mt-0.5" />
+                  <div>
+                    <span className="font-bold">อุปกรณ์พิเศษ:</span> {selectedJob.specialEquipment.join(', ')}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Tasks */}

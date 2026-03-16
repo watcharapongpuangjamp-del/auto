@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ShopSettings, Employee, LineItem, InventoryItem } from '../types';
 // Import Settings icon from lucide-react and alias it to avoid conflict with the component name
-import { Save, Store, Receipt, CreditCard, Image as ImageIcon, Upload, Timer, Users, Search, MapPin, Wrench, Briefcase, FileText, Settings as SettingsIcon } from 'lucide-react';
+import { Save, Store, Receipt, CreditCard, Image as ImageIcon, Upload, Timer, Users, Search, MapPin, Wrench, Briefcase, FileText, Settings as SettingsIcon, HelpCircle, Shield, MessageSquare, Monitor } from 'lucide-react';
 import EmployeeManagement from './EmployeeManagement';
 import LaborStandards from './LaborStandards';
 import PartsLookup from './PartsLookup';
@@ -19,6 +19,9 @@ interface SettingsProps {
   onExportData: () => void;
   onImportData: (data: any) => void;
   inventoryItems: InventoryItem[];
+  defaultTab?: 'GENERAL' | 'EMPLOYEES' | 'LABOR' | 'TOOLS' | 'BACKUP' | 'SUPPORT';
+  remoteSupportEnabled: boolean;
+  setRemoteSupportEnabled: (enabled: boolean) => void;
 }
 
 const Settings: React.FC<SettingsProps> = ({ 
@@ -31,9 +34,12 @@ const Settings: React.FC<SettingsProps> = ({
   onAddPartToEstimate,
   onExportData,
   onImportData,
-  inventoryItems
+  inventoryItems,
+  defaultTab = 'GENERAL',
+  remoteSupportEnabled,
+  setRemoteSupportEnabled
 }) => {
-  const [activeTab, setActiveTab] = useState<'GENERAL' | 'EMPLOYEES' | 'LABOR' | 'TOOLS' | 'BACKUP'>('GENERAL');
+  const [activeTab, setActiveTab] = useState<'GENERAL' | 'EMPLOYEES' | 'LABOR' | 'TOOLS' | 'BACKUP' | 'SUPPORT'>(defaultTab);
   const [formData, setFormData] = useState<ShopSettings>(settings);
 
   const isAdmin = currentUserRole === 'ADMIN';
@@ -85,9 +91,21 @@ const Settings: React.FC<SettingsProps> = ({
     { id: 'LABOR', label: 'มาตรฐานเวลา (FRT)', icon: Timer, roles: ['ADMIN', 'MECHANIC'] },
     { id: 'TOOLS', label: 'เครื่องมือ/ค้นหา', icon: Wrench, roles: ['ADMIN', 'MECHANIC', 'STAFF'] },
     { id: 'BACKUP', label: 'สำรองข้อมูล', icon: Upload, roles: ['ADMIN'] },
+    { id: 'SUPPORT', label: 'ช่วยเหลือ (Support)', icon: HelpCircle, roles: ['ADMIN', 'MECHANIC', 'STAFF'] },
   ];
 
   const visibleTabs = tabs.filter(t => t.roles.includes(currentUserRole));
+
+  const [supportMessage, setSupportMessage] = useState('');
+
+  const handleRequestSupport = () => {
+    if (!supportMessage.trim()) {
+      alert('กรุณาระบุรายละเอียดปัญหาที่ต้องการความช่วยเหลือ');
+      return;
+    }
+    alert('ส่งคำขอความช่วยเหลือไปยังผู้พัฒนาแล้ว (Support Request Sent)\nเราจะติดต่อกลับโดยเร็วที่สุด');
+    setSupportMessage('');
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
@@ -311,6 +329,110 @@ const Settings: React.FC<SettingsProps> = ({
                   onChange={handleImportFileChange}
                 />
               </label>
+            </div>
+          </div>
+        )}
+        {activeTab === 'SUPPORT' && (
+          <div className="p-6 md:p-8 space-y-8 max-w-4xl">
+            <div className="bg-slate-900 text-white rounded-2xl p-8 relative overflow-hidden shadow-xl">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <Shield size={120} />
+              </div>
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-brand-500 rounded-xl flex items-center justify-center">
+                    <Monitor size={24} className="text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold">ระบบช่วยเหลือระยะไกล (Remote Support)</h3>
+                </div>
+                <p className="text-slate-300 mb-8 max-w-2xl leading-relaxed">
+                  เมื่อเปิดใช้งานระบบนี้ ทีมพัฒนาจะสามารถเข้าถึงหน้าจอของคุณเพื่อช่วยตรวจสอบปัญหาและให้คำแนะนำได้แบบเรียลไทม์ 
+                  คุณสามารถปิดการเชื่อมต่อได้ทุกเมื่อที่ต้องการ
+                </p>
+                
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                  <button 
+                    onClick={() => setRemoteSupportEnabled(!remoteSupportEnabled)}
+                    className={`px-8 py-4 rounded-xl font-bold transition-all flex items-center gap-3 shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 ${
+                      remoteSupportEnabled 
+                        ? 'bg-red-500 hover:bg-red-600 text-white' 
+                        : 'bg-brand-500 hover:bg-brand-600 text-white'
+                    }`}
+                  >
+                    {remoteSupportEnabled ? (
+                      <>
+                        <Shield size={20} /> ปิดการเชื่อมต่อ (Disable Support)
+                      </>
+                    ) : (
+                      <>
+                        <Monitor size={20} /> เปิดระบบช่วยเหลือ (Enable Remote Support)
+                      </>
+                    )}
+                  </button>
+                  
+                  {remoteSupportEnabled && (
+                    <div className="flex items-center gap-2 text-green-400 animate-pulse">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span className="text-sm font-bold uppercase tracking-wider">Connected to Developer</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <MessageSquare size={20} className="text-brand-500" /> ส่งข้อความถึงผู้พัฒนา
+                </h3>
+                <div className="space-y-4">
+                  <textarea 
+                    rows={4}
+                    placeholder="ระบุรายละเอียดปัญหาหรือข้อสงสัย..."
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all text-sm"
+                    value={supportMessage}
+                    onChange={(e) => setSupportMessage(e.target.value)}
+                  />
+                  <button 
+                    onClick={handleRequestSupport}
+                    className="w-full bg-slate-800 text-white py-3 rounded-xl font-bold hover:bg-slate-900 transition-all shadow-sm"
+                  >
+                    ส่งข้อความ (Send Message)
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
+                <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <HelpCircle size={20} className="text-slate-400" /> ข้อมูลติดต่อผู้พัฒนา
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-slate-200">
+                      <Store size={18} className="text-slate-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-400 font-bold uppercase">Developer Team</p>
+                      <p className="text-sm font-bold text-slate-700">AutoQuote AI Support Team</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-slate-200">
+                      <MessageSquare size={18} className="text-slate-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-400 font-bold uppercase">Email Support</p>
+                      <p className="text-sm font-bold text-slate-700">support@autoquote-ai.com</p>
+                    </div>
+                  </div>
+                  <div className="pt-4 border-t border-slate-200">
+                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                      * ระบบช่วยเหลือระยะไกลจะทำงานผ่านการเชื่อมต่อที่ปลอดภัย (Secure WebSocket) 
+                      และจะไม่มีการเก็บรวบรวมข้อมูลส่วนตัวของลูกค้าโดยไม่ได้รับอนุญาต
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

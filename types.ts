@@ -130,6 +130,9 @@ export interface Estimate {
   timeline?: TimelineEvent[];
   diagnosis?: DiagnosisData;
   issuedBy?: string; // Added to track who created it
+  toolsUsed?: string[];
+  estimatedDuration?: string;
+  specialEquipment?: string[];
 }
 
 export interface InventoryItem {

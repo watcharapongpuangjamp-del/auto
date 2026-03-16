@@ -21,7 +21,10 @@
         "repairStage": { "type": "string" },
         "timeline": { "type": "array", "items": { "$ref": "TimelineEvent" } },
         "diagnosis": { "$ref": "DiagnosisData" },
-        "issuedBy": { "type": "string" }
+        "issuedBy": { "type": "string" },
+        "toolsUsed": { "type": "array", "items": { "type": "string" } },
+        "estimatedDuration": { "type": "string" },
+        "specialEquipment": { "type": "array", "items": { "type": "string" } }
       },
       "required": ["id", "date", "estimateNumber", "customer", "vehicle", "items", "status", "taxRate"]
     },

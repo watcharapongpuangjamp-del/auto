@@ -213,6 +213,33 @@ const JobCardPreview: React.FC<JobCardPreviewProps> = ({
            </div>
         </div>
 
+        {/* Job Specifications */}
+        <div className="mb-6 grid grid-cols-3 gap-4">
+           <div className="border-2 border-slate-200 rounded-lg p-3 bg-white">
+              <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">ระยะเวลาประเมิน (Est. Time)</p>
+              <p className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <Clock size={14} className="text-brand-600" />
+                {estimate.estimatedDuration || 'N/A'}
+              </p>
+           </div>
+           <div className="border-2 border-slate-200 rounded-lg p-3 bg-white">
+              <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">เครื่องมือที่ใช้ (Tools)</p>
+              <p className="text-[10px] font-medium text-slate-700">
+                {estimate.toolsUsed && estimate.toolsUsed.length > 0 
+                  ? estimate.toolsUsed.join(', ') 
+                  : 'N/A'}
+              </p>
+           </div>
+           <div className="border-2 border-slate-200 rounded-lg p-3 bg-white">
+              <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">อุปกรณ์พิเศษ (Special Equip.)</p>
+              <p className="text-[10px] font-medium text-slate-700">
+                {estimate.specialEquipment && estimate.specialEquipment.length > 0 
+                  ? estimate.specialEquipment.join(', ') 
+                  : 'N/A'}
+              </p>
+           </div>
+        </div>
+
         {/* Footer Signatures */}
         <div className="mt-auto pt-10 grid grid-cols-2 gap-12">
            <div className="text-center">

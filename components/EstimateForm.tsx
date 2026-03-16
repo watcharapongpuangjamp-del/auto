@@ -870,6 +870,48 @@ const EstimateForm: React.FC<EstimateFormProps> = ({
           </div>
         </div>
 
+        {/* JOB DETAILS (TOOLS, DURATION, SPECIAL EQUIP) */}
+        <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <h3 className="font-bold text-slate-800 flex items-center gap-2 border-b pb-3">
+            <Wrench size={18} className="text-brand-600" /> รายละเอียดงานเพิ่มเติม (Job Details)
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">ระยะเวลาที่ประเมิน (Estimated Duration)</label>
+              <div className="relative">
+                <input 
+                  type="text" 
+                  className="w-full p-2.5 pr-12 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all" 
+                  placeholder="เช่น 2 ชม. หรือ 1 วัน"
+                  value={estimate.estimatedDuration || ''} 
+                  onChange={(e) => setEstimate(prev => ({ ...prev, estimatedDuration: e.target.value }))} 
+                />
+                <Clock size={18} className="absolute right-3 top-2.5 text-slate-400" />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">เครื่องมือที่ใช้ (Tools Used)</label>
+              <input 
+                type="text" 
+                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all" 
+                placeholder="คั่นด้วยเครื่องหมายจุลภาค (,) เช่น ประแจปอนด์, เครื่องสแกน"
+                value={estimate.toolsUsed?.join(', ') || ''} 
+                onChange={(e) => setEstimate(prev => ({ ...prev, toolsUsed: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))} 
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">อุปกรณ์พิเศษ (Special Equipment)</label>
+              <input 
+                type="text" 
+                className="w-full p-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all" 
+                placeholder="เช่น เครื่องยกรถ, เครื่องเติมน้ำยาแอร์"
+                value={estimate.specialEquipment?.join(', ') || ''} 
+                onChange={(e) => setEstimate(prev => ({ ...prev, specialEquipment: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))} 
+              />
+            </div>
+          </div>
+        </div>
+
         {/* SUMMARY */}
         <div className="grid md:grid-cols-2 gap-8 pt-6 border-t">
           <div className="space-y-4">

@@ -16,6 +16,7 @@ import JobTracking from './components/JobTracking';
 import EmployeeManagement from './components/EmployeeManagement';
 import CustomerPortal from './components/CustomerPortal';
 import MechanicApp from './components/MechanicApp';
+import MechanicDashboard from './components/MechanicDashboard';
 import LaborStandards from './components/LaborStandards';
 import PurchaseOrderPreview from './components/PurchaseOrderPreview';
 import JobCardPreview from './components/JobCardPreview';
@@ -188,7 +189,7 @@ const App: React.FC = () => {
 
   const initialUser = getInitialUser();
   const [currentUser, setCurrentUser] = useState<Employee>(initialUser); 
-  const [currentView, setCurrentView] = useState(initialUser.role === UserRole.MECHANIC ? 'mechanic_app' : 'dashboard');
+  const [currentView, setCurrentView] = useState(initialUser.role === UserRole.MECHANIC ? 'mechanic_dashboard' : 'dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [estimates, setEstimates] = useState<Estimate[]>([]);
   const [shopSettings, setShopSettings] = useState<ShopSettings>(DEFAULT_SHOP_SETTINGS);
@@ -220,6 +221,9 @@ const App: React.FC = () => {
   // Notification State
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  // Remote Support State
+  const [remoteSupportEnabled, setRemoteSupportEnabled] = useState(false);
 
   // Firebase Sync
   useEffect(() => {
@@ -1200,7 +1204,9 @@ const App: React.FC = () => {
       );
       case 'po_preview': return currentPO ? <PurchaseOrderPreview purchaseOrder={currentPO} shopSettings={shopSettings} onBack={() => setCurrentView('inventory')} /> : <Inventory items={inventoryItems} onUpdateItems={handleUpdateInventory} />;
       case 'diagnosis': return <AiDiagnosis onSaveDiagnosis={handleSaveDiagnosis} openJobs={openJobs} initialJobId={diagnosisJobId} onNavigateToEstimate={handleNavigateToEstimate} />;
+      case 'mechanic_dashboard': return <MechanicDashboard estimates={estimates} currentUser={currentUser} />;
       case 'mechanic_app': return <MechanicApp estimates={estimates} currentUser={currentUser} onSaveEstimate={handleSaveEstimate} />;
+      case 'support':
       case 'settings': return (
         <Settings 
           settings={shopSettings} 
@@ -1213,6 +1219,9 @@ const App: React.FC = () => {
           onExportData={handleExportData}
           onImportData={handleImportData}
           inventoryItems={inventoryItems}
+          defaultTab={currentView === 'support' ? 'SUPPORT' : 'GENERAL'}
+          remoteSupportEnabled={remoteSupportEnabled}
+          setRemoteSupportEnabled={setRemoteSupportEnabled}
         />
       );
       default: return <Dashboard estimates={estimates} onCreateNew={handleCreateNew} onEdit={handleEditEstimate} onPrintJobCard={handlePrintJobCard} onNavigate={setCurrentView} />;
@@ -1276,11 +1285,19 @@ const App: React.FC = () => {
                 {currentView === 'inventory' && 'คลังอะไหล่'}
                 {currentView === 'receipts' && 'ประวัติใบเสร็จ'}
                 {currentView === 'diagnosis' && 'วิเคราะห์อาการด้วย AI'}
+                {currentView === 'mechanic_dashboard' && 'แดชบอร์ดช่างเทคนิค'}
                 {currentView === 'mechanic_app' && 'แอปช่างซ่อม (My Jobs)'}
+                {currentView === 'support' && 'ช่วยเหลือระยะไกล (Remote Support)'}
                 {currentView === 'settings' && 'ตั้งค่า'}
              </h2>
           </div>
           <div className="flex items-center gap-6">
+             {remoteSupportEnabled && (
+               <div className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-full border border-green-100 animate-pulse">
+                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                 <span className="text-[10px] font-bold uppercase tracking-wider">Remote Support Active</span>
+               </div>
+             )}
              <div className="relative">
                 <button 
                   onClick={() => setShowNotifications(!showNotifications)}
