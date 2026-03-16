@@ -1,0 +1,7 @@
+{
+  "name": "Remix: AutoQuote AI - ระบบใบเสนอราคาอู่ซ่อมรถ",
+  "description": "Smart automotive repair estimation system powered by Gemini. Creates professional quotations, looks up part prices using Google Search, and diagnoses vehicle issues with AI reasoning.",
+  "requestFramePermissions": [
+    "serial"
+  ]
+}

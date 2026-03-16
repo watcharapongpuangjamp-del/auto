@@ -1,0 +1,258 @@
+{
+  "entities": {
+    "Estimate": {
+      "title": "Estimate",
+      "description": "Repair estimates and job cards",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "estimateNumber": { "type": "string" },
+        "receiptNumber": { "type": "string" },
+        "receiptDate": { "type": "string" },
+        "customer": { "$ref": "Customer" },
+        "vehicle": { "$ref": "Vehicle" },
+        "items": { "type": "array", "items": { "$ref": "LineItem" } },
+        "notes": { "type": "string" },
+        "status": { "type": "string", "enum": ["DRAFT", "SENT", "APPROVED", "COMPLETED", "CANCELLED"] },
+        "taxRate": { "type": "number" },
+        "totalDiscount": { "type": "number" },
+        "repairStage": { "type": "string" },
+        "timeline": { "type": "array", "items": { "$ref": "TimelineEvent" } },
+        "diagnosis": { "$ref": "DiagnosisData" },
+        "issuedBy": { "type": "string" }
+      },
+      "required": ["id", "date", "estimateNumber", "customer", "vehicle", "items", "status", "taxRate"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "Customer information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "taxId": { "type": "string" }
+      },
+      "required": ["id", "name", "phone"]
+    },
+    "Vehicle": {
+      "title": "Vehicle",
+      "description": "Vehicle information",
+      "type": "object",
+      "properties": {
+        "make": { "type": "string" },
+        "model": { "type": "string" },
+        "year": { "type": "string" },
+        "licensePlate": { "type": "string" },
+        "mileage": { "type": "string" },
+        "vin": { "type": "string" },
+        "fuelLevel": { "type": "number" },
+        "color": { "type": "string" },
+        "scratches": { "type": "array", "items": { "type": "string" } },
+        "checkInNotes": { "type": "string" },
+        "photos": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["make", "model", "licensePlate"]
+    },
+    "LineItem": {
+      "title": "LineItem",
+      "description": "Individual item in an estimate",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "description": { "type": "string" },
+        "quantity": { "type": "number" },
+        "unitPrice": { "type": "number" },
+        "costPrice": { "type": "number" },
+        "type": { "type": "string", "enum": ["PART", "LABOR", "OTHER"] },
+        "discount": { "type": "number" },
+        "partNumber": { "type": "string" },
+        "serialNumber": { "type": "string" },
+        "officialPrice": { "type": "number" },
+        "inventoryId": { "type": "string" },
+        "mechanicId": { "type": "string" },
+        "category": { "type": "string" },
+        "standardHours": { "type": "number" },
+        "actualHours": { "type": "number" }
+      },
+      "required": ["id", "description", "quantity", "unitPrice", "type"]
+    },
+    "InventoryItem": {
+      "title": "InventoryItem",
+      "description": "Spare parts and inventory",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "partNumber": { "type": "string" },
+        "officialPartNumber": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "quantity": { "type": "number" },
+        "minQuantity": { "type": "number" },
+        "costPrice": { "type": "number" },
+        "sellingPrice": { "type": "number" },
+        "location": { "type": "string" },
+        "lastUpdated": { "type": "string" }
+      },
+      "required": ["id", "partNumber", "name", "quantity", "minQuantity", "costPrice", "sellingPrice"]
+    },
+    "Employee": {
+      "title": "Employee",
+      "description": "Staff and mechanics",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "position": { "type": "string" },
+        "role": { "type": "string", "enum": ["ADMIN", "MECHANIC", "STAFF"] },
+        "phone": { "type": "string" },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"] },
+        "email": { "type": "string" },
+        "salary": { "type": "number" },
+        "hourlyCost": { "type": "number" },
+        "joinedDate": { "type": "string" }
+      },
+      "required": ["id", "name", "position", "role", "phone", "status"]
+    },
+    "AppNotification": {
+      "title": "AppNotification",
+      "description": "System notifications",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["INFO", "WARNING", "SUCCESS", "ERROR"] },
+        "timestamp": { "type": "string" },
+        "isRead": { "type": "boolean" },
+        "relatedId": { "type": "string" },
+        "relatedType": { "type": "string", "enum": ["ESTIMATE", "INVENTORY", "SYSTEM"] }
+      },
+      "required": ["id", "title", "message", "type", "timestamp", "isRead"]
+    },
+    "ShopSettings": {
+      "title": "ShopSettings",
+      "description": "General shop configuration",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "taxId": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "defaultTaxRate": { "type": "number" },
+        "defaultNotes": { "type": "string" },
+        "bankInfo": { "type": "string" },
+        "laborRatePerHour": { "type": "number" }
+      },
+      "required": ["name", "address", "phone", "taxId", "defaultTaxRate", "laborRatePerHour"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User authentication and role mapping",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["ADMIN", "MECHANIC", "STAFF"] },
+        "name": { "type": "string" },
+        "employeeId": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "TimelineEvent": {
+      "title": "TimelineEvent",
+      "description": "Event in a job timeline",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string" },
+        "action": { "type": "string" },
+        "note": { "type": "string" }
+      },
+      "required": ["date", "action"]
+    },
+    "DiagnosisData": {
+      "title": "DiagnosisData",
+      "description": "Diagnostic information for a vehicle",
+      "type": "object",
+      "properties": {
+        "symptoms": { "type": "string" },
+        "obdCodes": { "type": "array", "items": { "type": "string" } },
+        "aiAnalysisResult": { "type": "string" },
+        "performedAt": { "type": "string" }
+      },
+      "required": ["symptoms", "performedAt"]
+    },
+    "ProcurementRequest": {
+      "title": "ProcurementRequest",
+      "description": "Request for parts procurement",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "inventoryId": { "type": "string" },
+        "description": { "type": "string" },
+        "partNumber": { "type": "string" },
+        "quantityNeeded": { "type": "number" },
+        "relatedJobId": { "type": "string" },
+        "relatedJobNumber": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "ORDERED", "RECEIVED"] },
+        "requestDate": { "type": "string" },
+        "purchaseOrderId": { "type": "string" }
+      },
+      "required": ["id", "description", "quantityNeeded", "relatedJobId", "relatedJobNumber", "status", "requestDate"]
+    },
+    "PurchaseOrder": {
+      "title": "PurchaseOrder",
+      "description": "Purchase order for vendors",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "poNumber": { "type": "string" },
+        "date": { "type": "string" },
+        "vendorName": { "type": "string" },
+        "items": { "type": "array", "items": { "$ref": "ProcurementRequest" } },
+        "status": { "type": "string", "enum": ["OPEN", "RECEIVED"] },
+        "totalCost": { "type": "number" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "poNumber", "date", "vendorName", "items", "status", "totalCost"]
+    }
+  },
+  "firestore": {
+    "estimates": {
+      "schema": "Estimate",
+      "description": "Collection of repair estimates"
+    },
+    "inventoryItems": {
+      "schema": "InventoryItem",
+      "description": "Collection of inventory items"
+    },
+    "employees": {
+      "schema": "Employee",
+      "description": "Collection of employees"
+    },
+    "notifications": {
+      "schema": "AppNotification",
+      "description": "Collection of system notifications"
+    },
+    "settings": {
+      "schema": "ShopSettings",
+      "description": "Global shop settings"
+    },
+    "users": {
+      "schema": "UserProfile",
+      "description": "User profiles and roles"
+    },
+    "procurementRequests": {
+      "schema": "ProcurementRequest",
+      "description": "Collection of procurement requests"
+    },
+    "purchaseOrders": {
+      "schema": "PurchaseOrder",
+      "description": "Collection of purchase orders"
+    }
+  }
+}

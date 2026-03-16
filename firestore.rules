@@ -1,0 +1,179 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users
+// Document ID: {uid}
+// Fields:
+//   - uid: string (required)
+//   - email: string (required)
+//   - role: string (required, enum: ADMIN, MECHANIC, STAFF)
+//   - name: string (optional)
+//   - employeeId: string (optional)
+//
+// Collection: estimates
+// Document ID: {estimateId}
+// Fields:
+//   - id: string (required)
+//   - estimateNumber: string (required)
+//   - customer: map (required)
+//   - vehicle: map (required)
+//   - items: list (required)
+//   - status: string (required)
+//   - taxRate: number (required)
+//   - issuedBy: string (optional)
+//
+// Collection: inventoryItems
+// Document ID: {itemId}
+// Fields:
+//   - id: string (required)
+//   - partNumber: string (required)
+//   - name: string (required)
+//   - quantity: number (required)
+//   - minQuantity: number (required)
+//   - costPrice: number (required)
+//   - sellingPrice: number (required)
+//
+// Collection: employees
+// Document ID: {employeeId}
+// Fields:
+//   - id: string (required)
+//   - name: string (required)
+//   - role: string (required)
+//   - status: string (required)
+//
+// Collection: settings
+// Document ID: shop (singleton)
+// Fields:
+//   - name: string (required)
+//   - address: string (required)
+//   - taxId: string (required)
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN') || 
+          (request.auth.token.email == "watcharapong.puangjamp@gmail.com" && request.auth.token.email_verified == true)
+        );
+    }
+
+    function isStaff() {
+      return isAuthenticated() && 
+        (
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'STAFF') || 
+          isAdmin()
+        );
+    }
+
+    function isMechanic() {
+      return isAuthenticated() && 
+        (
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'MECHANIC') || 
+          isAdmin()
+        );
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role']) &&
+             data.uid is string && data.uid.size() < 128 &&
+             data.email is string && isValidEmail(data.email) &&
+             data.role in ['ADMIN', 'MECHANIC', 'STAFF'];
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // Users collection
+    match /users/{uid} {
+      allow read: if isAuthenticated() && (request.auth.uid == uid || isAdmin());
+      allow create: if isAuthenticated() && (request.auth.uid == uid) && 
+        isValidUser(request.resource.data) &&
+        (request.resource.data.role == 'STAFF' || isAdmin());
+      allow update: if isAdmin() && isValidUser(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // Estimates collection
+    match /estimates/{estimateId} {
+      allow read: if isAuthenticated();
+      allow create: if isStaff() || isMechanic();
+      allow update: if isStaff() || isMechanic();
+      allow delete: if isAdmin();
+    }
+
+    // Inventory collection
+    match /inventoryItems/{itemId} {
+      allow read: if isAuthenticated();
+      allow create: if isStaff();
+      allow update: if isStaff() || isMechanic(); // Mechanics update quantity when used
+      allow delete: if isAdmin();
+    }
+
+    // Employees collection
+    match /employees/{employeeId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Settings collection
+    match /settings/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Procurement Requests
+    match /procurementRequests/{reqId} {
+      allow read: if isAuthenticated();
+      allow create: if isStaff() || isMechanic();
+      allow update: if isStaff() || isMechanic();
+      allow delete: if isAdmin();
+    }
+
+    // Purchase Orders
+    match /purchaseOrders/{poId} {
+      allow read: if isAuthenticated();
+      allow create: if isStaff();
+      allow update: if isStaff();
+      allow delete: if isAdmin();
+    }
+
+    // Notifications collection
+    match /notifications/{notifId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated(); // System or users can create
+      allow update: if isAuthenticated(); // Mark as read
+      allow delete: if isAdmin();
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}
