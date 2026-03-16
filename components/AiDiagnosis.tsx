@@ -192,7 +192,7 @@ const AiDiagnosis: React.FC<AiDiagnosisProps> = ({ onSaveDiagnosis, openJobs, in
       
       return (
         <div className="relative w-32 h-32 mx-auto">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <PieChart>
                     <Pie data={data} cx="50%" cy="50%" innerRadius={25} outerRadius={40} startAngle={90} endAngle={-270} dataKey="value">
                         <Cell key="score" fill={color} />

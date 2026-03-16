@@ -6,9 +6,10 @@ interface MechanicAppProps {
   estimates: Estimate[];
   currentUser: Employee;
   onSaveEstimate: (est: Estimate, silent?: boolean) => void;
+  onNavigateToDiagnosis?: (jobId: string) => void;
 }
 
-const MechanicApp: React.FC<MechanicAppProps> = ({ estimates, currentUser, onSaveEstimate }) => {
+const MechanicApp: React.FC<MechanicAppProps> = ({ estimates, currentUser, onSaveEstimate, onNavigateToDiagnosis }) => {
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
   // Filter jobs that are active and not completely done
@@ -30,6 +31,19 @@ const MechanicApp: React.FC<MechanicAppProps> = ({ estimates, currentUser, onSav
       ...job,
       repairStage: newStage,
       timeline: [...(job.timeline || []), newTimelineEvent]
+    };
+    
+    onSaveEstimate(updatedJob, true);
+  };
+
+  const handleUpdateActualHours = (job: Estimate, itemId: string, hours: number) => {
+    const updatedItems = job.items.map(item => 
+      item.id === itemId ? { ...item, actualHours: hours } : item
+    );
+    
+    const updatedJob: Estimate = {
+      ...job,
+      items: updatedItems
     };
     
     onSaveEstimate(updatedJob, true);
@@ -113,7 +127,7 @@ const MechanicApp: React.FC<MechanicAppProps> = ({ estimates, currentUser, onSav
             </div>
             
             {/* Action Buttons */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2 mb-4">
               <button 
                 onClick={() => handleUpdateStage(selectedJob, RepairStage.IN_PROGRESS, 'เริ่มงานซ่อม')}
                 disabled={selectedJob.repairStage === RepairStage.IN_PROGRESS}
@@ -153,14 +167,45 @@ const MechanicApp: React.FC<MechanicAppProps> = ({ estimates, currentUser, onSav
                 <span className="text-xs font-medium">เสร็จงาน</span>
               </button>
             </div>
+
+            {/* Stage Dropdown for Granular Control */}
+            <div className="pt-3 border-t border-slate-100">
+              <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">เปลี่ยนขั้นตอนการซ่อม (Change Stage)</label>
+              <select 
+                value={selectedJob.repairStage || ''}
+                onChange={(e) => {
+                  const newStage = e.target.value as RepairStage;
+                  if (newStage) {
+                    handleUpdateStage(selectedJob, newStage, `เปลี่ยนสถานะเป็น: ${getStageLabel(newStage)}`);
+                  }
+                }}
+                className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+              >
+                <option value={RepairStage.QUEUED}>รอคิวซ่อม (Queued)</option>
+                <option value={RepairStage.IN_PROGRESS}>กำลังซ่อม (In Progress)</option>
+                <option value={RepairStage.WAITING_PARTS}>รออะไหล่ (Waiting Parts)</option>
+                <option value={RepairStage.QC}>รอตรวจสอบ (QC)</option>
+                <option value={RepairStage.READY}>พร้อมส่งมอบ (Ready)</option>
+              </select>
+            </div>
           </div>
 
           {/* Job Details */}
           <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-4">
             <div>
-              <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
-                <AlertCircle size={18} className="text-slate-400" /> อาการที่แจ้ง
-              </h3>
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                  <AlertCircle size={18} className="text-slate-400" /> อาการที่แจ้ง
+                </h3>
+                {onNavigateToDiagnosis && (
+                  <button 
+                    onClick={() => onNavigateToDiagnosis(selectedJob.id)}
+                    className="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-1 rounded-lg flex items-center gap-1 hover:bg-brand-100 transition-colors"
+                  >
+                    <Wrench size={12} /> วิเคราะห์ AI
+                  </button>
+                )}
+              </div>
               <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-xl">
                 {selectedJob.diagnosis?.symptoms || selectedJob.notes || 'ไม่มีการระบุอาการ'}
               </p>
@@ -199,12 +244,37 @@ const MechanicApp: React.FC<MechanicAppProps> = ({ estimates, currentUser, onSav
             </h3>
             <div className="space-y-2">
               {selectedJob.items.map((item, idx) => (
-                <div key={idx} className="flex justify-between items-start p-3 bg-slate-50 rounded-xl border border-slate-100">
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">{item.description}</p>
-                    <p className="text-xs text-slate-500 mt-1">ประเภท: {item.type === 'PART' ? 'อะไหล่' : item.type === 'LABOR' ? 'ค่าแรง' : 'อื่นๆ'}</p>
+                <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-sm font-medium text-slate-800">{item.description}</p>
+                      <p className="text-xs text-slate-500 mt-1">ประเภท: {item.type === 'PART' ? 'อะไหล่' : item.type === 'LABOR' ? 'ค่าแรง' : 'อื่นๆ'}</p>
+                    </div>
+                    <span className="text-sm font-bold text-slate-700">x{item.quantity}</span>
                   </div>
-                  <span className="text-sm font-bold text-slate-700">x{item.quantity}</span>
+
+                  {item.type === 'LABOR' && (
+                    <div className="flex items-center gap-4 pt-2 border-t border-slate-200/50">
+                      <div className="flex-1">
+                        <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Standard Hours</p>
+                        <div className="text-sm font-bold text-slate-600 bg-slate-100/50 px-2 py-1 rounded-lg">
+                          {item.standardHours || 0} ชม.
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[10px] text-brand-500 uppercase font-bold mb-1">Actual Hours</p>
+                        <input 
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          value={item.actualHours !== undefined ? item.actualHours : ''}
+                          onChange={(e) => handleUpdateActualHours(selectedJob, item.id, e.target.value === '' ? 0 : parseFloat(e.target.value))}
+                          placeholder="0.0"
+                          className="w-full text-sm font-bold text-brand-600 bg-white border border-brand-200 px-2 py-1 rounded-lg outline-none focus:ring-2 focus:ring-brand-500/20"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
               {selectedJob.items.length === 0 && (
@@ -268,7 +338,17 @@ const MechanicApp: React.FC<MechanicAppProps> = ({ estimates, currentUser, onSav
             >
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <h3 className="font-bold text-lg text-slate-800">{job.vehicle.licensePlate}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-lg text-slate-800">{job.vehicle.licensePlate}</h3>
+                    <div className="flex gap-1">
+                      {job.items.some(i => i.type === 'LABOR' && (!i.actualHours || i.actualHours === 0)) && (
+                        <span className="px-1.5 py-0.5 bg-orange-100 text-orange-600 text-[8px] font-bold rounded uppercase" title="ยังไม่ระบุเวลาทำงานจริง">Hours</span>
+                      )}
+                      {job.items.some(i => i.type === 'PART') && (
+                        <span className="px-1.5 py-0.5 bg-blue-100 text-blue-600 text-[8px] font-bold rounded uppercase" title="มีรายการอะไหล่">Parts</span>
+                      )}
+                    </div>
+                  </div>
                   <p className="text-sm text-slate-500">{job.vehicle.make} {job.vehicle.model}</p>
                 </div>
                 <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${getStageColor(job.repairStage)}`}>

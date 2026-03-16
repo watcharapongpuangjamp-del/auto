@@ -271,8 +271,8 @@ const Dashboard: React.FC<DashboardProps> = ({ estimates, onCreateNew, onEdit, o
               ผลประกอบการ (Profit Analysis)
             </h3>
           </div>
-          <div className="flex-1 min-h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="flex-1 h-[300px]">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
@@ -321,7 +321,7 @@ const Dashboard: React.FC<DashboardProps> = ({ estimates, onCreateNew, onEdit, o
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <LineChart data={combinedChartData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                   <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />

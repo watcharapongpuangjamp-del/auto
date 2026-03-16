@@ -24,6 +24,8 @@ import CustomerManagement from './components/CustomerManagement';
 import TutorialOverlay from './components/TutorialOverlay';
 import NotificationCenter from './components/NotificationCenter';
 import MechanicWorkload from './components/MechanicWorkload';
+import { DeveloperSystemProvider } from './src/developer/DeveloperSystem';
+import { DeveloperDashboard } from './src/developer/DeveloperDashboard';
 import { Estimate, LineItem, ShopSettings, RepairStage, Employee, ItemType, InventoryItem, ProcurementRequest, PurchaseOrder, Customer, DiagnosisData, AppNotification, UserRole, Permission, ROLE_PERMISSIONS } from './types';
 import { DEFAULT_ESTIMATE, DEFAULT_SHOP_SETTINGS, DEFAULT_EMPLOYEES } from './constants';
 import { TUTORIAL_STEPS } from './data/tutorialSteps';
@@ -963,6 +965,11 @@ const App: React.FC = () => {
     else setCurrentView('dashboard');
   };
 
+  const handleNavigateToDiagnosis = (jobId: string) => {
+    setDiagnosisJobId(jobId);
+    setCurrentView('diagnosis');
+  };
+
   const handleUpdateJobStage = async (est: Estimate, newStage: RepairStage) => {
     const updatedEst: Estimate = { ...est, repairStage: newStage, timeline: [ ...(est.timeline || []), { date: new Date().toISOString(), action: `Moved to ${newStage}` } ] };
     if (user) {
@@ -1205,7 +1212,7 @@ const App: React.FC = () => {
       case 'po_preview': return currentPO ? <PurchaseOrderPreview purchaseOrder={currentPO} shopSettings={shopSettings} onBack={() => setCurrentView('inventory')} /> : <Inventory items={inventoryItems} onUpdateItems={handleUpdateInventory} />;
       case 'diagnosis': return <AiDiagnosis onSaveDiagnosis={handleSaveDiagnosis} openJobs={openJobs} initialJobId={diagnosisJobId} onNavigateToEstimate={handleNavigateToEstimate} />;
       case 'mechanic_dashboard': return <MechanicDashboard estimates={estimates} currentUser={currentUser} />;
-      case 'mechanic_app': return <MechanicApp estimates={estimates} currentUser={currentUser} onSaveEstimate={handleSaveEstimate} />;
+      case 'mechanic_app': return <MechanicApp estimates={estimates} currentUser={currentUser} onSaveEstimate={handleSaveEstimate} onNavigateToDiagnosis={handleNavigateToDiagnosis} />;
       case 'support':
       case 'settings': return (
         <Settings 
@@ -1268,114 +1275,117 @@ const App: React.FC = () => {
   }
 
   return (
-    <ErrorBoundary>
-      <div className="flex h-screen bg-gray-50 overflow-hidden font-sans">
-      <TutorialOverlay active={isTutorialActive} steps={TUTORIAL_STEPS} currentStepIndex={currentTutorialStep} onNext={nextTutorialStep} onPrev={prevTutorialStep} onClose={endTutorial} />
-      <Sidebar currentView={currentView} setCurrentView={setCurrentView} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} currentUser={currentUser} availableUsers={employees} onSwitchUser={handleSwitchUser} allowSwitchUser={!isTutorialActive} onStartTutorial={startTutorial} />
-      <main className="flex-1 flex flex-col h-full overflow-hidden relative">
-        {/* Desktop Header with Notifications */}
-        <header className="hidden lg:flex h-16 bg-white border-b border-slate-200 items-center justify-between px-8 flex-shrink-0 z-40">
-          <div className="flex items-center gap-4">
-             <h2 className="font-bold text-slate-800 text-lg">
-                {currentView === 'dashboard' && 'แดชบอร์ด'}
-                {currentView === 'reception' && 'ลงทะเบียนลูกค้า'}
-                {currentView === 'tracking' && 'ติดตามงานซ่อม'}
-                {currentView === 'customers' && 'จัดการลูกค้า'}
-                {currentView === 'create' && 'ใบเสนอราคา'}
-                {currentView === 'inventory' && 'คลังอะไหล่'}
-                {currentView === 'receipts' && 'ประวัติใบเสร็จ'}
-                {currentView === 'diagnosis' && 'วิเคราะห์อาการด้วย AI'}
-                {currentView === 'mechanic_dashboard' && 'แดชบอร์ดช่างเทคนิค'}
-                {currentView === 'mechanic_app' && 'แอปช่างซ่อม (My Jobs)'}
-                {currentView === 'support' && 'ช่วยเหลือระยะไกล (Remote Support)'}
-                {currentView === 'settings' && 'ตั้งค่า'}
-             </h2>
-          </div>
-          <div className="flex items-center gap-6">
-             {remoteSupportEnabled && (
-               <div className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-full border border-green-100 animate-pulse">
-                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                 <span className="text-[10px] font-bold uppercase tracking-wider">Remote Support Active</span>
+    <DeveloperSystemProvider userRole={currentUser?.role}>
+      <ErrorBoundary>
+        <div className="flex h-screen bg-gray-50 overflow-hidden font-sans">
+        <TutorialOverlay active={isTutorialActive} steps={TUTORIAL_STEPS} currentStepIndex={currentTutorialStep} onNext={nextTutorialStep} onPrev={prevTutorialStep} onClose={endTutorial} />
+        <Sidebar currentView={currentView} setCurrentView={setCurrentView} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} currentUser={currentUser} availableUsers={employees} onSwitchUser={handleSwitchUser} allowSwitchUser={!isTutorialActive} onStartTutorial={startTutorial} />
+        <main className="flex-1 flex flex-col h-full overflow-hidden relative">
+          {/* Desktop Header with Notifications */}
+          <header className="hidden lg:flex h-16 bg-white border-b border-slate-200 items-center justify-between px-8 flex-shrink-0 z-40">
+            <div className="flex items-center gap-4">
+               <h2 className="font-bold text-slate-800 text-lg">
+                  {currentView === 'dashboard' && 'แดชบอร์ด'}
+                  {currentView === 'reception' && 'ลงทะเบียนลูกค้า'}
+                  {currentView === 'tracking' && 'ติดตามงานซ่อม'}
+                  {currentView === 'customers' && 'จัดการลูกค้า'}
+                  {currentView === 'create' && 'ใบเสนอราคา'}
+                  {currentView === 'inventory' && 'คลังอะไหล่'}
+                  {currentView === 'receipts' && 'ประวัติใบเสร็จ'}
+                  {currentView === 'diagnosis' && 'วิเคราะห์อาการด้วย AI'}
+                  {currentView === 'mechanic_dashboard' && 'แดชบอร์ดช่างเทคนิค'}
+                  {currentView === 'mechanic_app' && 'แอปช่างซ่อม (My Jobs)'}
+                  {currentView === 'support' && 'ช่วยเหลือระยะไกล (Remote Support)'}
+                  {currentView === 'settings' && 'ตั้งค่า'}
+               </h2>
+            </div>
+            <div className="flex items-center gap-6">
+               {remoteSupportEnabled && (
+                 <div className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-full border border-green-100 animate-pulse">
+                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                   <span className="text-[10px] font-bold uppercase tracking-wider">Remote Support Active</span>
+                 </div>
+               )}
+               <div className="relative">
+                  <button 
+                    onClick={() => setShowNotifications(!showNotifications)}
+                    className={`p-2 rounded-full transition-colors relative ${showNotifications ? 'bg-brand-50 text-brand-600' : 'text-slate-400 hover:bg-slate-100'}`}
+                  >
+                    <Bell size={20} />
+                    {unreadNotifications > 0 && (
+                      <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full border-2 border-white">
+                        {unreadNotifications}
+                      </span>
+                    )}
+                  </button>
+                  {showNotifications && (
+                    <NotificationCenter 
+                      notifications={notifications}
+                      onMarkAsRead={markAsRead}
+                      onMarkAllAsRead={markAllAsRead}
+                      onClearAll={clearNotifications}
+                      onClose={() => setShowNotifications(false)}
+                      onViewRelated={handleViewNotificationRelated}
+                    />
+                  )}
                </div>
-             )}
-             <div className="relative">
-                <button 
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className={`p-2 rounded-full transition-colors relative ${showNotifications ? 'bg-brand-50 text-brand-600' : 'text-slate-400 hover:bg-slate-100'}`}
-                >
-                  <Bell size={20} />
-                  {unreadNotifications > 0 && (
-                    <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full border-2 border-white">
-                      {unreadNotifications}
-                    </span>
+               <div className="flex items-center gap-3 pl-6 border-l border-slate-100">
+                  <div className="text-right">
+                     <p className="text-sm font-bold text-slate-800">{currentUser?.name}</p>
+                     <p className="text-xs text-slate-500">{currentUser?.role}</p>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center text-white font-bold shadow-md">
+                     {currentUser?.name?.charAt(0)}
+                  </div>
+                  <button 
+                    onClick={handleLogout}
+                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                    title="ออกจากระบบ"
+                  >
+                    <LogIn size={18} className="rotate-180" />
+                  </button>
+               </div>
+            </div>
+          </header>
+  
+          <header className="lg:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 flex-shrink-0">
+            <div className="flex items-center">
+              <button onClick={() => setIsSidebarOpen(true)} className="text-slate-600 p-2"><Menu size={24} /></button>
+              <span className="font-bold text-slate-800 ml-2">AutoQuote AI</span>
+            </div>
+            <div className="flex items-center gap-3">
+               <div className="relative">
+                  <button 
+                    onClick={() => setShowNotifications(!showNotifications)}
+                    className={`p-2 rounded-full transition-colors relative ${showNotifications ? 'bg-brand-50 text-brand-600' : 'text-slate-400 hover:bg-slate-100'}`}
+                  >
+                    <Bell size={20} />
+                    {unreadNotifications > 0 && (
+                      <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full border-2 border-white">
+                        {unreadNotifications}
+                      </span>
+                    )}
+                  </button>
+                  {showNotifications && (
+                    <NotificationCenter 
+                      notifications={notifications}
+                      onMarkAsRead={markAsRead}
+                      onMarkAllAsRead={markAllAsRead}
+                      onClearAll={clearNotifications}
+                      onClose={() => setShowNotifications(false)}
+                      onViewRelated={handleViewNotificationRelated}
+                    />
                   )}
-                </button>
-                {showNotifications && (
-                  <NotificationCenter 
-                    notifications={notifications}
-                    onMarkAsRead={markAsRead}
-                    onMarkAllAsRead={markAllAsRead}
-                    onClearAll={clearNotifications}
-                    onClose={() => setShowNotifications(false)}
-                    onViewRelated={handleViewNotificationRelated}
-                  />
-                )}
-             </div>
-             <div className="flex items-center gap-3 pl-6 border-l border-slate-100">
-                <div className="text-right">
-                   <p className="text-sm font-bold text-slate-800">{currentUser?.name}</p>
-                   <p className="text-xs text-slate-500">{currentUser?.role}</p>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center text-white font-bold shadow-md">
-                   {currentUser?.name?.charAt(0)}
-                </div>
-                <button 
-                  onClick={handleLogout}
-                  className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                  title="ออกจากระบบ"
-                >
-                  <LogIn size={18} className="rotate-180" />
-                </button>
-             </div>
-          </div>
-        </header>
-
-        <header className="lg:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 flex-shrink-0">
-          <div className="flex items-center">
-            <button onClick={() => setIsSidebarOpen(true)} className="text-slate-600 p-2"><Menu size={24} /></button>
-            <span className="font-bold text-slate-800 ml-2">AutoQuote AI</span>
-          </div>
-          <div className="flex items-center gap-3">
-             <div className="relative">
-                <button 
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className={`p-2 rounded-full transition-colors relative ${showNotifications ? 'bg-brand-50 text-brand-600' : 'text-slate-400 hover:bg-slate-100'}`}
-                >
-                  <Bell size={20} />
-                  {unreadNotifications > 0 && (
-                    <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full border-2 border-white">
-                      {unreadNotifications}
-                    </span>
-                  )}
-                </button>
-                {showNotifications && (
-                  <NotificationCenter 
-                    notifications={notifications}
-                    onMarkAsRead={markAsRead}
-                    onMarkAllAsRead={markAllAsRead}
-                    onClearAll={clearNotifications}
-                    onClose={() => setShowNotifications(false)}
-                    onViewRelated={handleViewNotificationRelated}
-                  />
-                )}
-             </div>
-             <div className="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center text-white font-bold text-xs">{currentUser?.name?.charAt(0) || '?'}</div>
-          </div>
-        </header>
-        <div className="flex-1 overflow-auto p-4 md:p-6 scroll-smooth">{renderContent()}</div>
-      </main>
-    </div>
-    </ErrorBoundary>
+               </div>
+               <div className="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center text-white font-bold text-xs">{currentUser?.name?.charAt(0) || '?'}</div>
+            </div>
+          </header>
+          <div className="flex-1 overflow-auto p-4 md:p-6 scroll-smooth">{renderContent()}</div>
+        </main>
+        </div>
+        <DeveloperDashboard />
+      </ErrorBoundary>
+    </DeveloperSystemProvider>
   );
 };
 
